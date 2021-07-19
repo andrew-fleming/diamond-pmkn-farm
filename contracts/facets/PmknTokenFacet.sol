@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import { PmknToken } from "../libraries/LibAppStorage.sol";
 import {LibDiamond} from "../libraries/LibDiamond.sol";
-import "../interfaces/IERC20.sol";
+import "../interfaces/IPmknToken.sol";
 
 
 contract PmknTokenFacet {
@@ -64,13 +64,13 @@ contract PmknTokenFacet {
             // pass
         } else {
             uint256 l_allowance = s.allowances[_from][msg.sender];
-            require(l_allowance >= _value, "GHST: Not allowed to transfer");
+            require(l_allowance >= _value, "PMKN: Not allowed to transfer");
             if (l_allowance != MAX_UINT) {
                 s.allowances[_from][msg.sender] = l_allowance - _value;
                 emit Approval(_from, msg.sender, l_allowance - _value);
             }
         }
-        require(fromBalance >= _value, "GHST: Not enough GHST to transfer");
+        require(fromBalance >= _value, "PmknToken: Not enough PMKN to transfer");
         s.balances[_from] = fromBalance - _value;
         s.balances[_to] += _value;
         emit Transfer(_from, _to, _value);

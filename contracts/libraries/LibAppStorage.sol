@@ -11,3 +11,4 @@ struct PmknToken {
     mapping(address => mapping(address => uint256)) allowances;
     uint256 totalSupply;
 }
+
