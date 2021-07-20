@@ -5,6 +5,8 @@ import { PmknFarm, PmknToken } from "../libraries/LibAppStorage.sol";
 import { IERC20 } from "../interfaces/IERC20.sol";
 import { IPmknToken } from "../interfaces/IPmknToken.sol";
 import {LibDiamond} from "../libraries/LibDiamond.sol";
+import "hardhat/console.sol";
+
 
 contract PmknFarmFacet {
     PmknFarm s;
@@ -31,6 +33,10 @@ contract PmknFarmFacet {
         );
         uint256 _amount = amount;
         amount = 0;
+        if(s.isStaking[msg.sender] == true){
+            uint256 toTransfer = calculateYieldTotal(msg.sender);
+            s.pmknBalance[msg.sender] += toTransfer;
+        }
         s.dai.transferFrom(msg.sender, address(this), _amount);
         s.isStaking[msg.sender] = true;
         s.startTime[msg.sender] = block.timestamp;
@@ -57,13 +63,13 @@ contract PmknFarmFacet {
         emit Unstake(msg.sender, balTransfer);
     }
 
-    function calculateYieldTime(address user) internal view returns(uint256){
+    function calculateYieldTime(address user) public view returns(uint256){
         uint256 end = block.timestamp;
         uint256 totalTime = end - s.startTime[user];
         return totalTime;
     }
 
-    function calculateYieldTotal(address user) internal view returns(uint256) {
+    function calculateYieldTotal(address user) public view returns(uint256) {
         uint256 time = calculateYieldTime(user) * 10**18;
         uint256 rate = 86400;
         uint256 timeRate = time / rate;

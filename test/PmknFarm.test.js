@@ -11,7 +11,7 @@ const {
   
   const { assert, expect } = require('chai')
   
-  describe('DiamondTest', async function () {
+  describe('PmknFarm', async function () {
     let diamondAddress
     let diamondCutFacet
 
@@ -139,9 +139,32 @@ const {
     })
 
     describe("Unstake", async() => {
-        it("should unstake", async() => {
+        it("should unstake whole amount", async() => {
+            amount = pmknFarm.getStakingBalance(owner.address)
+            await pmknFarm.unstake(amount)
+
+            expect(await pmknFarm.getIsStaking(owner.address))
+                .to.be.false
             
+            expect(await mockDai.balanceOf(owner.address))
+                .to.eq(ethers.utils.parseEther("999"))
+        })
+
+        it("should partially unstake", async() => {
+            amount = ethers.utils.parseEther("10")
+            await pmknFarm.connect(alice).unstake(amount)
+
+            expect(await pmknFarm.getIsStaking(alice.address))
+                .to.be.true
+
+            expect(await pmknFarm.getStakingBalance(alice.address))
+                .to.eq(ethers.utils.parseEther("30"))
+        })
+
+        it("should emit Unstake event", async() => {
+            expect(await pmknFarm.connect(alice).unstake(amount))
+                .to.emit(pmknFarm, "Unstake")
+                .withArgs(alice.address, amount)
         })
     })
-
 })
