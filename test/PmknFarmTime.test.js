@@ -19,6 +19,7 @@ const {
     let pmknTokenFacet
     let pmknFarm
     let pmknFarmFacet
+    let ownershipFacet
     let mockDai
     let tx
     let receipt
@@ -111,7 +112,9 @@ const {
                 .to.be.lessThan(afterUnstake)
         })
 
-        it("should withdraw correct yield", async() => {
+        it("should withdraw correct yield", async() => { 
+            console.log("pmknFarm: ", pmknFarm.address)
+            console.log("pmknToken: ", pmknToken.address)
             let balance = await pmknFarm.getStakingBalance(owner.address)
             await pmknFarm.unstake(balance)
             expected = await pmknFarm.getPmknBalance(owner.address)

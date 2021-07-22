@@ -97,7 +97,7 @@ contract PmknTokenFacet {
     }
 
     function mint(address _receiver, uint256 _value) external returns(bool success){
-        //LibDiamond.enforceIsContractOwner();
+        require(msg.sender == address(this), "You are not the minter");
         require(_receiver != address(0), "_to cannot be zero address");        
         s.balances[_receiver] += _value;
         s.totalSupply += _value;            

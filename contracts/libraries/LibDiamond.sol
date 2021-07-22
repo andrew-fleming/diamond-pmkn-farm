@@ -24,16 +24,6 @@ library LibDiamond {
         mapping(bytes4 => bool) supportedInterfaces;
         // owner of the contract
         address contractOwner;
-
-        // PMKNTOKEN //
-        // owner => (spender => amount)
-        mapping(address => mapping(address => uint256)) allowances;
-        mapping(address => uint256) balances;
-        address[] approvedContracts;
-        mapping(address => uint256) approvedContractIndexes;
-        bytes32[1000] emptyMapSlots;
-        uint96 totalSupply;
-
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
