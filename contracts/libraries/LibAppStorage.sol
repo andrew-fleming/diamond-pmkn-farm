@@ -29,10 +29,13 @@ struct PmknFarm {
 
 struct NftFactory {
     uint256 nftCount;
+    // tokenId => totalSupply
     mapping(uint256 => uint256) totalSupply;
+    // tokenId => Template struct
+    mapping(uint256 => Template) nftTemplate;
 }
 
-struct NftTemplate {
+struct Template {
     string name;
     string uri;
     bytes data;
