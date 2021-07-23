@@ -27,3 +27,16 @@ struct PmknFarm {
     mapping(address => uint256) startTime;
 }
 
+struct NftFactory {
+    uint256 nftCount;
+    mapping(uint256 => uint256) totalSupply;
+}
+
+struct NftTemplate {
+    string name;
+    string uri;
+    bytes data;
+    uint256 price;
+    uint256 tokenId;
+}
+
