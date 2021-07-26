@@ -2,16 +2,9 @@ import { ethers } from "hardhat";
 
 const { getSelectors, FacetCutAction } = require('./libraries/diamond.js')
 
-async function deployDiamond () {
+async function deployPmknDiamond () {
   const accounts = await ethers.getSigners()
   const contractOwner = accounts[0]
-
-  // mockDai
-  const MockDai = await ethers.getContractFactory("MockERC20");
-  const mockDai = await MockDai.deploy("MockDai", "mDAI");
-  await mockDai.deployed();
-  const mockDaiAddress = mockDai.address
-  console.log(`MockDai address: ${mockDai.address}`)
 
   // deploy DiamondCutFacet
   const DiamondCutFacet = await ethers.getContractFactory('DiamondCutFacet')
@@ -26,13 +19,13 @@ async function deployDiamond () {
   console.log('Diamond deployed:', diamond.address)
 
   // deploy DiamondInit
-  const DiamondInit = await ethers.getContractFactory('DiamondInit')
-  const diamondInit = await DiamondInit.deploy()
-  await diamondInit.deployed()
-  console.log('DiamondInit deployed:', diamondInit.address)
+  const DiamondPmknInit = await ethers.getContractFactory('DiamondPmknInit')
+  const diamondPmknInit = await DiamondPmknInit.deploy()
+  await diamondPmknInit.deployed()
+  console.log('DiamondPmknInit deployed:', diamondPmknInit.address)
 
   // fetch pmknToken
-  const pmknToken = await ethers.getContractAt("PmknTokenFacet", diamond.address)
+  //const pmknToken = await ethers.getContractAt("PmknTokenFacet", diamond.address)
 
   // deploy facets
   console.log('')
@@ -47,7 +40,7 @@ async function deployDiamond () {
     const Facet = await ethers.getContractFactory(FacetName)
     const facet = await Facet.deploy()
     await facet.deployed()
-    console.log(`${FacetName} deployed: ${diamondInit.address}`)
+    console.log(`${FacetName} deployed: ${diamondPmknInit.address}`)
     cut.push({
       facetAddress: facet.address,
       action: FacetCutAction.Add,
@@ -62,8 +55,8 @@ async function deployDiamond () {
   let tx
   let receipt
   // call to init function
-  let functionCall = diamondInit.interface.encodeFunctionData('init', [[mockDaiAddress, pmknToken.address]])
-  tx = await diamondCut.diamondCut(cut, diamondInit.address, functionCall)
+  let functionCall = diamondPmknInit.interface.encodeFunctionData('init')
+  tx = await diamondCut.diamondCut(cut, diamondPmknInit.address, functionCall)
   console.log('Diamond cut tx: ', tx.hash)
   receipt = await tx.wait()
   if (!receipt.status) {
@@ -76,7 +69,7 @@ async function deployDiamond () {
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 if (require.main === module) {
-  deployDiamond()
+    deployPmknDiamond()
     .then(() => process.exit(0))
     .catch(error => {
       console.error(error)
@@ -84,4 +77,4 @@ if (require.main === module) {
     })
 }
 
-exports.deployDiamond = deployDiamond
+exports.deployPmknDiamond = deployPmknDiamond
