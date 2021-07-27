@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { PmknFarm, PmknToken } from "../libraries/LibAppStorage.sol";
-import { IERC20 } from "../interfaces/IERC20.sol";
-import { IPmknToken } from "../interfaces/IPmknToken.sol";
-import {LibDiamond} from "../libraries/LibDiamond.sol";
+import { PmknFarm } from "../libraries/LibAppStorage.sol";
+import { AppStorage } from "../../PmknToken/libraries/LibAppStorage.sol";
+import { IERC20 } from "../../shared/interfaces/IERC20.sol";
+import { IPmknToken } from "../../PmknToken/interfaces/IPmknToken.sol";
+import {LibDiamond} from "../../shared/libraries/LibDiamond.sol";
 import "hardhat/console.sol";
 
 
@@ -15,15 +16,15 @@ contract PmknFarmFacet {
     event Unstake(address indexed from, uint256 amount);
     event YieldWithdraw(address indexed from, uint256 amount);
 
-    function setDaiContract(address daiAddress) external {
-        LibDiamond.enforceIsContractOwner();
-        s.dai = IERC20(daiAddress);
-    }
-
-    function setPmknTokenContract(address pmknAddress) external {
-        LibDiamond.enforceIsContractOwner();
-        s.pmknToken = IPmknToken(pmknAddress);
-    }
+    //function setDaiContract(address daiAddress) external {
+    //    LibDiamond.enforceIsContractOwner();
+    //    s.dai = IERC20(daiAddress);
+    //}
+//
+    //function setPmknTokenContract(address pmknAddress) external {
+    //    LibDiamond.enforceIsContractOwner();
+    //    s.pmknToken = IPmknToken(pmknAddress);
+    //}
 
     function stake(uint amount) public {
         require(
@@ -108,5 +109,9 @@ contract PmknFarmFacet {
 
     function getPmknBalance(address user) external view returns(uint256){
         return s.pmknBalance[user];
+    }
+
+    function getPmknTokenAddress() external view returns(address){
+        return address(s.pmknToken);
     }
 }

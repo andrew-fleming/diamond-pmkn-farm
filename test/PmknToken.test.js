@@ -7,45 +7,26 @@ const {
     findAddressPositionInFacets
   } = require('../scripts/libraries/diamond.js')
   
-  const { deployDiamond } = require('../scripts/deployDiamond.ts')
+  const { deployPmknDiamond } = require('../scripts/deployPmknDiamond.ts')
   
-  const { assert, expect } = require('chai')
   
-  describe('DiamondTest', async function () {
+  const { expect } = require('chai')
+  
+  describe('Pmkn Diamond Test', async function () {
     let diamondAddress
     let diamondCutFacet
 
     let pmknToken
-    let pmknTokenFacet
-    let tx
-    let receipt
     let res
-    const addresses = []
 
     before(async function () {
-        diamondAddress = await deployDiamond()
+        diamondAddress = await deployPmknDiamond()
         diamondCutFacet = await ethers.getContractAt('DiamondCutFacet', diamondAddress);
 
-        [owner, alice] = await ethers.getSigners();
-
-        const PmknTokenFacet = await ethers.getContractFactory('PmknTokenFacet')
-        pmknTokenFacet = await PmknTokenFacet.deploy()
-        await pmknTokenFacet.deployed()
-        addresses.push(pmknTokenFacet.address)
-        let selectors = getSelectors(pmknTokenFacet)
-        tx = await diamondCutFacet.diamondCut(
-            [{
-                facetAddress: pmknTokenFacet.address,
-                action: FacetCutAction.Add,
-                functionSelectors: selectors
-            }],
-            ethers.constants.AddressZero, '0x', { gasLimit: 800000 })
-        receipt = await tx.wait()
-        if (!receipt.status) {
-            throw Error(`Diamond upgrade failed: ${tx.hash}`)
-        }
+        [owner, alice, bob] = await ethers.getSigners();
 
         pmknToken = await ethers.getContractAt("PmknTokenFacet", diamondAddress);
+        await pmknToken.setMinter(owner.address)
     })
 
     describe("Init", async() => {
@@ -113,6 +94,22 @@ const {
                 .to.be.reverted
         })
         
+    })
+
+    describe("Minter role", async() => {
+        it("should assign minter", async() => {
+            expect(await pmknToken.isMinter(alice.address))
+                .to.be.false
+
+            await expect(pmknToken.connect(alice).mint(bob.address, 1))
+                .to.be.reverted
+
+            await pmknToken.setMinter(alice.address)
+            await pmknToken.connect(alice).mint(bob.address, 1)
+
+            expect(await pmknToken.balanceOf(bob.address))
+                .to.eq(1)
+        })
     })
 
     

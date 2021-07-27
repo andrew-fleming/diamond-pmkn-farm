@@ -25,4 +25,6 @@ interface IPmknToken {
     function allowance(address _owner, address _spender) external view returns (uint256 remaining);
 
     function mint(address _receiver, uint256 _value) external returns(bool success);
+
+    function setMinter(address minter) external returns(bool success); 
 }

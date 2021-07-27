@@ -1,37 +1,40 @@
 /* global describe it before ethers */
 
-const {
+let {
     getSelectors,
     FacetCutAction,
-    removeSelectors,
-    findAddressPositionInFacets
   } = require('../scripts/libraries/diamond.js')
-  
-  const { deployDiamond } = require('../scripts/deployDiamond.ts')
-  const { expect } = require('chai')
+
+  const { deployPmknDiamond } = require('../scripts/deployPmknDiamond.ts')
+  const { deployDiamondTest } = require('./libraries/deployDiamondTest.ts')
+
   const { time } = require("@openzeppelin/test-helpers")
+    
+  let { expect } = require('chai')
   
-  describe('PmknFarmTime', async function () {
+  describe('PmknFarm', async function () {
     let diamondAddress
     let diamondCutFacet
 
     let pmknToken
-    let pmknTokenFacet
     let pmknFarm
     let pmknFarmFacet
-    let ownershipFacet
     let mockDai
     let tx
     let receipt
     let res
-    let expected
-    const addresses = []
+    let addresses = []
 
     before(async function () {
         const MockDai = await ethers.getContractFactory("MockERC20");
         mockDai = await MockDai.deploy("MockDai", "mDAI");
-        diamondAddress = await deployDiamond()
+
+        const pmknTokenAddress = await deployPmknDiamond();
+
+        diamondAddress = await deployDiamondTest(mockDai.address, pmknTokenAddress);
         diamondCutFacet = await ethers.getContractAt('DiamondCutFacet', diamondAddress);
+        diamondLoupeFacet = await ethers.getContractAt('DiamondLoupeFacet', diamondAddress);
+        ownershipFacet = await ethers.getContractAt('OwnershipFacet', diamondAddress);
 
         [owner, alice, bob] = await ethers.getSigners();
         await Promise.all([
@@ -39,23 +42,6 @@ const {
             mockDai.mint(alice.address, ethers.utils.parseEther("999")),
             mockDai.mint(bob.address, ethers.utils.parseEther("999")),
         ]);
-
-        const PmknTokenFacet = await ethers.getContractFactory('PmknTokenFacet')
-        pmknTokenFacet = await PmknTokenFacet.deploy()
-        await pmknTokenFacet.deployed()
-        addresses.push(pmknTokenFacet.address)
-        let selectors = getSelectors(pmknTokenFacet)
-        tx = await diamondCutFacet.diamondCut(
-            [{
-                facetAddress: pmknTokenFacet.address,
-                action: FacetCutAction.Add,
-                functionSelectors: selectors
-            }],
-            ethers.constants.AddressZero, '0x', { gasLimit: 800000 })
-        receipt = await tx.wait()
-        if (!receipt.status) {
-            throw Error(`Diamond upgrade failed: ${tx.hash}`)
-        }
 
         const PmknFarmFacet = await ethers.getContractFactory('PmknFarmFacet')
         pmknFarmFacet = await PmknFarmFacet.deploy()
@@ -74,10 +60,9 @@ const {
             throw Error(`Diamond upgrade failed: ${tx.hash}`)
         }
 
-        pmknToken = await ethers.getContractAt("PmknTokenFacet", diamondAddress);
         pmknFarm = await ethers.getContractAt("PmknFarmFacet", diamondAddress);
-        await pmknFarm.setDaiContract(mockDai.address)
-        await pmknFarm.setPmknTokenContract(pmknToken.address)
+        pmknToken = await ethers.getContractAt("PmknTokenFacet", pmknTokenAddress);
+        await pmknToken.setMinter(pmknFarm.address)
     })
 
     describe("Time traveling", async() => {
@@ -113,8 +98,6 @@ const {
         })
 
         it("should withdraw correct yield", async() => { 
-            console.log("pmknFarm: ", pmknFarm.address)
-            console.log("pmknToken: ", pmknToken.address)
             let balance = await pmknFarm.getStakingBalance(owner.address)
             await pmknFarm.unstake(balance)
             expected = await pmknFarm.getPmknBalance(owner.address)

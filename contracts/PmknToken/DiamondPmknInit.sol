@@ -8,13 +8,14 @@ pragma solidity ^0.8.0;
 * Implementation of a diamond.
 /******************************************************************************/
 
-import {LibDiamond} from "../libraries/LibDiamond.sol";
-import { IDiamondLoupe } from "../interfaces/IDiamondLoupe.sol";
-import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
-import { IERC173 } from "../interfaces/IERC173.sol";
-import { IERC165 } from "../interfaces/IERC165.sol";
+import {LibDiamond} from "../shared/libraries/LibDiamond.sol";
+import { IDiamondLoupe } from "../shared/interfaces/IDiamondLoupe.sol";
+import { IDiamondCut } from "../shared/interfaces/IDiamondCut.sol";
+import { IERC173 } from "../shared/interfaces/IERC173.sol";
+import { IERC165 } from "../shared/interfaces/IERC165.sol";
+import { IPmknToken } from "./interfaces/IPmknToken.sol";
 
-contract DiamondInit {
+contract DiamondPmknInit {
 
     function init() external {
         // adding ERC165 data
@@ -24,6 +25,4 @@ contract DiamondInit {
         ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
         ds.supportedInterfaces[type(IERC173).interfaceId] = true;
     }
-
-
 }

@@ -2,18 +2,19 @@
 
 pragma solidity ^0.8.0;
 
-import { PmknToken } from "../libraries/LibAppStorage.sol";
-import {LibDiamond} from "../libraries/LibDiamond.sol";
+import { AppStorage } from "../libraries/LibAppStorage.sol";
+import {LibDiamond} from "../../shared/libraries/LibDiamond.sol";
 import "../interfaces/IPmknToken.sol";
 
 
 contract PmknTokenFacet {
-    PmknToken internal s;
+    AppStorage internal s;
 
     uint256 constant MAX_UINT = type(uint256).max;
 
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
+    event Role(address indexed _assignee, bytes32 _role);
 
     function name() external pure returns (string memory) {
         return "PmknToken";
@@ -97,12 +98,25 @@ contract PmknTokenFacet {
     }
 
     function mint(address _receiver, uint256 _value) external returns(bool success){
-        require(msg.sender == address(this), "You are not the minter");
+        require(isMinter(msg.sender), "You are not the minter");
         require(_receiver != address(0), "_to cannot be zero address");        
         s.balances[_receiver] += _value;
         s.totalSupply += _value;            
         emit Transfer(address(0), _receiver, _value); 
         success = true;       
     }
+
+    function setMinter(address minter) external returns(bool success){
+        LibDiamond.enforceIsContractOwner();
+        bytes32 minterRole = keccak256(abi.encodePacked("MINTER_ROLE"));
+        s.roles[minterRole][minter] = true;
+        emit Role(minter, minterRole);
+        success = true;
+    }
+
+    function isMinter(address _address) public view returns(bool){
+        bytes32 minterRole = keccak256(abi.encodePacked("MINTER_ROLE"));
+        return s.roles[minterRole][_address];
+    } 
 
 }
